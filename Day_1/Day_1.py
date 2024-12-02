@@ -38,15 +38,10 @@ def part_two():
 							j = l # set new starting index
 						else:
 							break
-
 			# sort all the keys
 			y = list(tmp.keys())
 			y.sort()
-
-			print(y)
-			print(tmp)
 			nums.append(int(tmp[y[0]] + tmp[y[-1]]))
-			print(nums[-1])
 
 	print("Sum: ", sum(nums)) # 54845
 
