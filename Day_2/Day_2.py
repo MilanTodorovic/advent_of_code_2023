@@ -1,0 +1,52 @@
+# Advent of Code 2023 - Day 2
+
+def part_one():
+	RED = 12
+	GREEN = 13
+	BLUE = 14
+	possible_games = []
+	with open("./input.txt", "r") as file:
+		for line in file.readlines():
+			game, rest = line.split(":")
+			game_nr = int(game.split(" ")[1])
+			draws = rest.split(";")
+			bad_game = False
+			for draw in draws:
+				draw = draw.strip()
+				cubes = draw.split(",")
+				for cube in cubes:
+					cube = cube.strip()
+					r = cube.find("red")
+					if r >= 0:
+						num = cube[0:r-1]
+						if RED < int(num):
+							bad_game = True
+							break
+					g = cube.find("green")
+					if g >= 0:
+						num = cube[0:g-1]
+						if GREEN < int(num):
+							bad_game = True
+							break
+					b = cube.find("blue")
+					if b >= 0:
+						num = cube[0:b-1]
+						if BLUE < int(num):
+							bad_game = True
+							break
+				if bad_game == True:
+					break
+			else:
+				print("Good game:", game_nr)
+				possible_games.append(game_nr)
+					
+
+	print("Possible games:", sum(possible_games))
+
+def part_two():
+	pass
+
+
+if __name__ == "__main__":
+	part_one()
+	part_two()
