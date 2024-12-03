@@ -5,22 +5,7 @@ from collections import defaultdict
 SKIP = ".\n\t\r\b"
 MAX_COL = 0
 
-def remove_duplicates(results: dict[tuple]):
-    # results = {(138, 129): [{137: (126, 129)}, {137: (130, 133)}]}
-    #           star coords:   row:coords digits, ...
-    new_dct = {}
-    new_new_dct = {}
-    for k, v in results.items(): # (,):[...]
-        for j in v: # {int:(,)}
-            for _k, _v in j.items():
-                new_dct[_k] = list(set([i for i in _v]))
-            new_new_dct[k] = new_dct
-    return new_new_dct
-
 def check_number(lines: str, row: int, col: int):
-    # To get the solution for part_one change
-    #   the return value to be a list [row, (front, back+1)]
-
     global MAX_COL
 
     if lines[row][col].isdigit():
@@ -44,12 +29,13 @@ def check_number(lines: str, row: int, col: int):
             else:
                 back_end = True
             if front_end and back_end:
-                return {row:(front, back+1)} # back+1 so that it is inclusive range
+                return int(lines[row][front:back+1])
+                #return [row, (front, back+1)] # back+1 so that it is inclusive range
             i += 1
             j += 1
     else:
         # no digit found
-        return {-1: ()}
+        return None
         
 
 def part_one():
@@ -74,37 +60,50 @@ def part_one():
         tmp = []
         row,col = sym[0],sym[1]
         # Do all 8 directions
-        if row > 0:
-            if col > 0:
-                res = check_number(lines, row-1, col-1)
-                results[res[0]].append(res[1]) # works because we use defaultdict wich initializes a list on first call
-            res = check_number(lines, row-1, col)
-            results[res[0]].append(res[1])
-            if col < MAX_COL:
-                res = check_number(lines, row-1, col+1)
-                results[res[0]].append(res[1])
         if col > 0:
+            # Left
             res = check_number(lines, row, col-1)
-            results[res[0]].append(res[1])
+            if res:
+                results[res[0]].append(res[1])
         if col < MAX_COL:
+            # Right
             res = check_number(lines, row, col+1)
-            results[res[0]].append(res[1])
+            if res:
+                results[res[0]].append(res[1])
+        if row > 0:
+            # Upper mid
+            res = check_number(lines, row-1, col)
+            # If no number is found right above the *
+            #   check left, then right
+            if not res:
+                # Upper left
+                res = check_number(lines, row-1, col-1)
+                if res:
+                    results[res[0]].append(res[1])
+                # Upper right
+                res = check_number(lines, row-1, col+1)
+                if res:
+                    results[res[0]].append(res[1])
+            else:
+                results[res[0]].append(res[1])
         if row < max_row:
-            if col > 0:
-                res = check_number(lines, row+1, col-1)
-                results[res[0]].append(res[1])
+            # Same as above
             res = check_number(lines, row+1, col)
-            results[res[0]].append(res[1])
-            if col < MAX_COL:
+            if not res:
+                # Bottom left
+                res = check_number(lines, row+1, col-1)
+                if res:
+                    results[res[0]].append(res[1])
+                # Bottom right
                 res = check_number(lines, row+1, col+1)
+                if res:
+                    results[res[0]].append(res[1])
+            else:
                 results[res[0]].append(res[1])
-    results.pop(-1) # I was too lazy to make proper checks
-    
-    dct = remove_duplicates(results)
 
     lst = []
 
-    for k,v in dct.items():
+    for k,v in results.items():
         for i in v:
             lst.append(int(lines[k][i[0]:i[1]]))
     print("Summed part no.:", sum(lst)) # 529618
@@ -126,57 +125,56 @@ def part_two():
                 # Save symbol location
                 star_coords.append([row,col])
 
-    results = defaultdict(list)
+    results = []
     for star in star_coords:
-        tmp = {}
         row,col = star[0],star[1]
+        tmp = []
         # Do all 8 directions
-        if row > 0:
-            if col > 0:
-                res = check_number(lines, row-1, col-1)
-                if res.get(-1,1):
-                    tmp[(row,col)].append(res) # works because we use defaultdict wich initializes a list on first call
-            res = check_number(lines, row-1, col)
-            if res.get(-1,1):
-                tmp[(row,col)].append(res)
-            if col < MAX_COL:
-                res = check_number(lines, row-1, col+1)
-                if res.get(-1,1):
-                    tmp[(row,col)].append(res)
         if col > 0:
+            # Left
             res = check_number(lines, row, col-1)
-            if res.get(-1,1):
-                tmp[(row,col)].append(res)
+            if res is not None:
+                tmp.append(res)
         if col < MAX_COL:
+            # Right
             res = check_number(lines, row, col+1)
-            if res.get(-1,1):
-                tmp[(row,col)].append(res)
+            if res is not None:
+                tmp.append(res)
+        if row > 0:
+            # Upper mid
+            res = check_number(lines, row-1, col)
+            # If no number is found right above the *
+            #   check left, then right
+            if res is None:
+                # Upper left
+                res = check_number(lines, row-1, col-1)
+                if res is not None:
+                    tmp.append(res)
+                # Upper right
+                res = check_number(lines, row-1, col+1)
+                if res is not None:
+                    tmp.append(res)
+            else:
+                tmp.append(res)
         if row < max_row:
-            if col > 0:
-                res = check_number(lines, row+1, col-1)
-                if res.get(-1,1):
-                    tmp[(row,col)].append(res)
+            # Same as above
             res = check_number(lines, row+1, col)
-            if res.get(-1,1):
-                tmp[(row,col)].append(res)
-            if col < MAX_COL:
+            if res is None:
+                # Bottom left
+                res = check_number(lines, row+1, col-1)
+                if res is not None:
+                    tmp.append(res)
+                # Bottom right
                 res = check_number(lines, row+1, col+1)
-                if res.get(-1,1):
-                    tmp[(row,col)].append(res)
-        if len(tmp.keys()) == 2:
-            results.append(tmp)
+                if res is not None:
+                    tmp.append(res)
+            else:
+                tmp.append(res) # works because we use defaultdict wich initializes a list on first call
 
-    dct = remove_duplicates(results)
-    print(dct)
-    lst = []
+        if len(tmp) == 2:
+            results.append(tmp[0]*tmp[1])
 
-    for k,v in dct.items():
-        if len(v) == 2:
-            a, b = v[0], v[1]
-            x, y = lines[k[0]][a[0]:a[1]], lines[k[0]][b[0]:b[1]]
-            #print(x,y)
-            lst.append(int(x) * int(y))
-    print("Summed part no.:", sum(lst)) # 
+    print("Summed part no.:", sum(results)) # 
 
 if __name__ == "__main__":
     #part_one()
